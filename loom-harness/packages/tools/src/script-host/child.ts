@@ -54,6 +54,10 @@ export function launchChild(spec: LaunchSpec, handlers: ChildHandlers): ChildHan
     env: minimalEnv(spec.extraEnv),
     stdio: ["ignore", "pipe", "pipe"],
     detached: process.platform !== "win32",
+
+    // 2026-10-31: Windows 下隐藏控制台窗口，避免 AI 每次 bash 调用弹黑框
+
+    windowsHide: true,
   });
 
   if (child.pid !== undefined) {

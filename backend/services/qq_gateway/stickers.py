@@ -188,9 +188,10 @@ class StickerService:
             path = item.get("url") or item.get("path")
             if not path:
                 raise ActionError("send_sticker", f"sticker {res_id} has no path/url", 1402)
-            return {"type": "image", "data": {"file": path, "summary": item.get("note") or item.get("name") or ""}}
+            return {"type": "image", "data": {"file": path, "sub_type": 1,
+                                              "summary": item.get("note") or item.get("name") or ""}}
         if file_path:
-            return {"type": "image", "data": {"file": file_path}}
+            return {"type": "image", "data": {"file": file_path, "sub_type": 1}}
         raise ActionError("send_sticker", "res_id, source_message_id or file_path required", 1400)
 
     async def _find(self, res_id: str) -> dict[str, Any]:

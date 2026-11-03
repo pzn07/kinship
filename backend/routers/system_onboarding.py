@@ -446,7 +446,15 @@ def _kernel_release_runner(
     try:
         venv_info = kernel_bootstrap.ensure_kernel_venv(
             project_root,
-            requirements_file=project_root / "kernel" / "requirements.txt",
+            # 2026-10-30 本地补丁：0.1.0 发行包内没有 kernel/requirements.txt，
+            # 且安装流程每次都会重新解压 kernel/，放在里面的文件会被覆盖掉。
+            # 因此优先使用项目根下的 kernel-requirements.txt（不会被解压覆盖），
+            # 发行包日后自带该文件时仍然回落到官方路径。
+            requirements_file=(
+                project_root / "kernel-requirements.txt"
+                if (project_root / "kernel-requirements.txt").is_file()
+                else project_root / "kernel" / "requirements.txt"
+            ),
             classification=classification,
             torch_index=torch_index,
             phase=_runtime_phase,

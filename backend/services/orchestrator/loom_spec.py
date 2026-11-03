@@ -247,13 +247,33 @@ async def _start_loom() -> dict[str, Any]:
         return {"ok": False, "detail": "token_missing"}
 
     cli = rt._cli_path()
-    argv = build_start_command(
-        node,
-        cli,
-        port=port,
-        host=host,
-        config_path=config_path,
-    )
+    # 2026-10-31 本地补丁：Windows 下不走 child_entry。
+    # child_entry 用 os.execvp 转发 argv，而 CPython 在 Windows 上这条路径
+    # 不对含空格的参数加引号 —— "C:\Program Files\nodejs\node.EXE" 会被拆成
+    # ["C:\Program", "Files\nodejs\node.EXE"]，node 于是把后半段当脚本加载，
+    # 报 MODULE_NOT_FOUND，Loom 永远起不来。
+    # 本模块头注已说明：Windows 的父死亡保护由父进程侧 Job Object 负责，
+    # 不依赖 exec-based PR_SET_PDEATHSIG，因此这里直接 spawn node。
+    if os.name == "nt":
+        argv = [
+            str(node),
+            str(cli),
+            "serve",
+            "--port",
+            str(port),
+            "--hostname",
+            str(host),
+            "--config",
+            str(config_path),
+        ]
+    else:
+        argv = build_start_command(
+            node,
+            cli,
+            port=port,
+            host=host,
+            config_path=config_path,
+        )
     env = build_start_env(config, token_state.token, config_path=config_path)
     log_path = child_log_path()
     log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -294,7 +314,10 @@ async def _start_loom() -> dict[str, Any]:
                 % (health.get("error") or "Loom 未通过 /health"),
             }
 
-        target_argv = argv[argv.index("--target") + 1:]
+        if "--target" in argv:
+            target_argv = argv[argv.index("--target") + 1:]
+        else:
+            target_argv = argv[1:]
         await _write_pid_record(pid, target_argv, config_path)
 
         return {

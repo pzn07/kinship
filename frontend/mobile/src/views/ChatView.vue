@@ -2,7 +2,7 @@
   <AppShell
     class="ax-chat-page"
     title="对话"
-    meta="小贺 · 知己"
+    meta="小彭 · 知己"
     :inspector-open="contextInspectorOpen"
     @update:inspector-open="contextInspectorOpen = $event"
   >

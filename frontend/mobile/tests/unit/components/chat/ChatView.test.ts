@@ -270,7 +270,7 @@ describe('ChatView', () => {
     await flushPromises()
 
     expect(wrapper.get('.ax-page-header__title').text()).toBe('对话')
-    expect(wrapper.get('.ax-page-header__meta').text()).toBe('小贺 · 知己')
+    expect(wrapper.get('.ax-page-header__meta').text()).toBe('小彭 · 知己')
     expect(wrapper.find('[data-testid="chat-page"]').exists()).toBe(true)
     expect(wrapper.findAll('.ax-chat__action')).toHaveLength(0)
     expect(wrapper.find('[data-testid="session-trigger"]').exists()).toBe(false)

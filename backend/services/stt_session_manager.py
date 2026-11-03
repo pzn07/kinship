@@ -205,9 +205,23 @@ class STTSessionManager:
             }
     
     def get_agent_session(self, agent_type: str) -> Optional[str]:
-        """获取智能体的会话ID"""
+        """获取智能体的会话ID。
+
+        2026-10-31 本地补丁：存储键是带后端前缀的命名键（如 ``loom:main-task``，
+        见 ``web_agent_key``），而任务调度器传的是裸标签 ``main-task``，直接
+        ``get`` 拿不到 → 定时任务报「没有可用的会话」永远失败。
+        这里做后缀兜底：裸标签找不到时，匹配任意 ``*:<agent_type>`` 的键。
+        """
         with self.lock:
-            return self._agent_sessions.get(agent_type)
+            value = self._agent_sessions.get(agent_type)
+            if value:
+                return value
+            if isinstance(agent_type, str) and ":" not in agent_type:
+                suffix = ":" + agent_type
+                for key, val in self._agent_sessions.items():
+                    if isinstance(key, str) and key.endswith(suffix) and val:
+                        return val
+            return None
     
     def set_agent_session(self, agent_type: str, session_id: str):
         """设置智能体的会话"""

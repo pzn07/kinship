@@ -86,6 +86,10 @@ function runProcessWithShell(
       cwd,
       // 进程组 kill 口径不动：POSIX detached 组领导、win32 单 PID（killProcessGroup 分支）。
       detached: process.platform !== "win32",
+
+      // 2026-10-31: Windows 下隐藏控制台窗口，避免 AI 每次 bash 调用弹黑框
+
+      windowsHide: true,
       env: options.env,
       stdio: ["ignore", "pipe", "pipe"],
     });
